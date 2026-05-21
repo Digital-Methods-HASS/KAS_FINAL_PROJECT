@@ -1,0 +1,107 @@
+---
+title: "Danish slavetrade"
+project authors: "Katrine Deleuran Holm Hartvigsen, Simone Rahbek Storbank, Astrid Bang Nielsen"
+main Rstudios author: "Astrid Bang Nielsen"
+output: html_document
+---
+
+## Loading dataset and mutating
+
+```{r}
+# Loading the dataset and making a new collum 
+library(tidyverse)
+library(dplyr)
+slave1 <- read.csv("data/dk_slaves.csv", na = "NULL")
+slave2<-slave1 %>% 
+  mutate(People_Dead=Total.embarked..IMP.-Total.disembarked..IMP.)
+```
+
+## Making the graph "How many people where transported”
+
+```{r}
+library(ggplot2)
+
+slave2 %>% 
+  ggplot(aes(x = Year.arrived.with.captives, y = Total.embarked..IMP.), na = "NULL")+
+  theme_sub_strip()+
+  geom_point()+
+  labs(title="How many people where transported", x="Year when arived", y="People aboard")+
+  scale_x_continuous(breaks = seq(1710, 1849, by = 10))+
+  scale_y_continuous(breaks = seq(0, 500, by = 20))+
+  geom_smooth(method = "lm", formular = y ~ x, color = "red")+
+  geom_vline(xintercept = 1792, color = "red")+
+  geom_vline(xintercept = 1803, color = "red")
+
+```
+
+## Making the graph “How many people died aboard”
+
+```{r}
+install.packages(geomtextpath)
+library(geomtextpath)
+
+slave2 %>% 
+  ggplot(aes(x = Year.arrived.with.captives, y = People_Dead), na = "NULL")+
+  theme_sub_strip()+
+  geom_point()+
+  labs(title="How many people died aboard", x="Year when arived", y="People died aboard")+
+  scale_x_continuous(breaks = seq(1710, 1849, by = 10))+
+  scale_y_continuous(breaks = seq(0, 500, by = 5))+
+  geom_smooth(method = "lm", formular = y ~ x, color = "red")+
+  geom_vline(xintercept = 1792, color = "red")+
+  geom_vline(xintercept = 1803, color = "red")
+```
+
+## Making the graph “Place where slaves were from”
+
+```{r}
+library(tidyverse)
+
+slave2 <- slave2 %>% 
+  rename(region = "Imputed.Principal.region.of.captive.purchase")
+
+region_summary <- slave2 %>% 
+  group_by(region) %>% 
+  summarise(total_slaves = sum(Total.embarked..IMP., na.rm = TRUE))
+
+region_summary %>% 
+  ggplot(aes(x = region, y = total_slaves)) +
+  geom_point() +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Place where slaves were from", x = "Region", y = "Total number of slaves") +
+  scale_y_continuous(breaks = seq(0, 5200, by = 500))
+
+```
+
+## Making the graph “Original regions over time"
+
+```{r}
+slave2 %>% 
+  group_by(Year.arrived.with.captives, region) %>% 
+  summarise(total = sum(Total.embarked..IMP., na.rm = TRUE)) %>% 
+  ggplot(aes(x = Year.arrived.with.captives, y = total, fill = region)) +
+  geom_area() +
+  theme_minimal() +
+  labs(title = "Original regions over time", x = "Year", y = "Number of slaves")+
+  geom_vline(xintercept = 1792, color = "red")+
+  geom_vline(xintercept = 1803, color = "red")
+```
+
+## Making the graph “Gender distribution of enslaved people"
+
+```{r}
+gender_summary <- slave2 %>% 
+  mutate(men = Total.embarked..IMP. * (Percent.male / 100), women = Total.embarked..IMP. * (Percent.female / 100)) %>% 
+  summarise(total_men = sum(men, na.rm = TRUE), total_women = sum(women, na.rm = TRUE))
+
+gender_summary <- tibble(
+  gender = c("Men", "Women"),
+  total = c(gender_summary$total_men, gender_summary$total_women))
+
+ggplot(gender_summary, aes(x = "", y = total, fill = gender)) +
+  geom_col(width = 1) +
+  coord_polar("y")+
+  labs(title = "Gender distribution of enslaved people")+
+   theme_void()
+```
