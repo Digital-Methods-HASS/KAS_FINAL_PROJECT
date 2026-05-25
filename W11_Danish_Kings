@@ -1,15 +1,16 @@
 ---
 title: "Danish Kings"
-author: "Astrid Bang, Katrine Deleuran Holm Hatrtvigsen, Simone Rahbek Storbank"
-date: "2026-03-13"
+author: "Astrid Bang, Simone Rahbek Storbank, Katrine Deleuran Holm Hartigsen"
+date: "2025-01-10"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(ggplot2)
+install.packages("ggplot2")
 ```
-
 
 The task here is to load your Danish Monarchs csv into R using the `tidyverse` toolkit, calculate and explore the kings' duration of reign with pipes `%>%` in `dplyr` and plot it over time.
 
@@ -21,31 +22,30 @@ Make sure to first create an  `.Rproj` workspace with a `data/` folder where you
 
 List what is the
 
-separator: Comma
+separator:comma  
 
 2. Create a `kings` object in R with the different functions below and inspect the different outputs.
 -  `read.csv()`
 -  `read_csv()`
 -  `read.csv2()` 
 -  `read_csv2()`
-```{r eval=TRUE}
+```{r eval=FALSE}
 # FILL IN THE CODE BELOW and review the outputs
-#library(tidyverse)
-kings1 <- read.csv("data/kings.csv")
+kings <- read.csv("data/kings.csv")
 
 kings2 <- read_csv("data/kings.csv")
 
 kings3 <- read.csv2("data/kings.csv")
 
-kings4 <- read_csv2("data/kings.csv")
+kings4 <- read_csv2( "data/kings.csv")
 ```
 Answer: 
 1. Which of these functions is a `tidyverse` function? Read data with it below into a `kings` object
-  Using read_csv(kings2) is the right function and gives the best sheet.
-  
+Using read_csv(kings2) is the right function and gives the best sheet.
+
 2. What is the result of running `class()` on the `kings` object created with a tidyverse function.
   It gives us a tibble:"spec_tbl_df" "tbl_df" "data.frame"
-  
+
 3. How many columns does the object have when created with these different functions?
   When using read.csv we get 11 columns, while read.csv gives us 11 columns, read.csv2 and read_csv2 only gives   us 1 column.
 
@@ -65,7 +65,10 @@ glimpse(kings)
 
 head(kings)
 
+
 ```
+
+
 ## Calculate the duration of reign for all the kings in your table
 You can calculate the duration of reign in years with `mutate` function by subtracting the equivalents of your `startReign` from `endReign` columns and writing the result to a new column called `duration`. But first you need to check a few things:
 
@@ -77,10 +80,10 @@ Create a new column called  `duration` in the kings dataset, utilizing the `muta
 
 ```{r eval = TRUE}
 # YOUR CODE
-king_new<-kings %>% 
-  filter(!is.na(Start_year),!is.na(End_year)) %>% 
-  mutate(kings_duration=End_year-Start_year)
 
+king_new <- kings %>% 
+  filter(!is.na(Start_year), !is.na(End_year)) %>% 
+  mutate(Start_year = as.numeric(Start_year), End_year = as.numeric(End_year), kings_duration = End_year - Start_year)
 glimpse(king_new)
 ```
 
@@ -95,7 +98,7 @@ Do you remember how to calculate an average on a vector object? If not, review t
 
 ```{r eval=TRUE}
 # YOUR CODE
-mean(king_new$kings_duration, na.rm = TRUE)
+mean(king_new $ kings_duration, na.rm = TRUE)
 king_new %>% 
   summarise(mean_kings_duration=mean(kings_duration))
 ```
@@ -107,9 +110,7 @@ You have calculated the average duration above. Use it now to `filter()` the `du
 ```{r eval=TRUE}
 # YOUR CODE
 king_new %>%
-  filter(kings_duration>mean(king_new$kings_duration)) %>% 
-  count(kings_duration>mean(king_new$kings_duration))
- 
+  filter(kings_duration > 19.57692)
 ```
 
 
@@ -126,8 +127,11 @@ longest <- king_new %>%
   arrange(desc(kings_duration)) %>% 
   slice(1:3)
 
-longest %>% 
-  mutate(Days=kings_duration*365)
+king_new %>% 
+  mutate(Days_kings = kings_duration*365) %>% 
+  select(Name, kings_duration, Days_kings) %>% 
+  arrange(desc(kings_duration)) %>% 
+  slice(1:3)
   
 ```
 
@@ -143,7 +147,17 @@ What is the long-term trend in the duration of reign among Danish monarchs? How 
 
 ```{r}
 # YOUR CODE
+
+king_new %>% 
+  mutate(midyear = Start_year+(End_year - Start_year)/2) %>% 
+  ggplot(aes(x= midyear, y = kings_duration))+
+  geom_point()+
+  geom_smooth()+
+  labs(title = "Duration through the years", x = "Midyear", y = "duration")
+
 ```
 
 And to submit this rmarkdown, knit it into html. But first, clean up the code chunks, adjust the date, rename the author and change the `eval=FALSE` flag to `eval=TRUE` so your script actually generates an output.
 Well done!
+
+
