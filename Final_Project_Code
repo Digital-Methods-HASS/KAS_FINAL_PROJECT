@@ -57,15 +57,12 @@ slave2 %>%
 ```{r}
 library(tidyverse)
 
-slave2 <- slave2 %>% 
-  rename(region = "Imputed.Principal.region.of.captive.purchase")
-
 region_summary <- slave2 %>% 
-  group_by(region) %>% 
+  group_by(voyage_itinerary__imp_principal_region_of_slave_purchase__name) %>% 
   summarise(total_slaves = sum(Total.embarked..IMP., na.rm = TRUE))
 
 region_summary %>% 
-  ggplot(aes(x = region, y = total_slaves)) +
+  ggplot(aes(x = voyage_itinerary__imp_principal_region_of_slave_purchase__name, y = total_slaves))+
   geom_point() +
   coord_flip() +
   theme_minimal() +
@@ -77,15 +74,17 @@ region_summary %>%
 ## Making the graph “Original regions over time"
 
 ```{r}
+slave2 <- slave2%>% 
+  rename(region = "voyage_itinerary__imp_principal_region_of_slave_purchase__name")
+
 slave2 %>% 
   group_by(Year.arrived.with.captives, region) %>% 
   summarise(total = sum(Total.embarked..IMP., na.rm = TRUE)) %>% 
   ggplot(aes(x = Year.arrived.with.captives, y = total, fill = region)) +
-  geom_area() +
+  geom_col() +
   theme_minimal() +
-  labs(title = "Original regions over time", x = "Year", y = "Number of slaves")+
-  geom_vline(xintercept = 1792, color = "red")+
-  geom_vline(xintercept = 1803, color = "red")
+  facet_wrap(~region)+
+  labs(title = "Original regions over time", x = "Year", y = "Number of slaves")
 ```
 
 ## Making the graph “Gender distribution of enslaved people"
