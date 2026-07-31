@@ -11,7 +11,7 @@ output: html_document
 # Loading the dataset and making a new collum 
 library(tidyverse)
 library(dplyr)
-slave1 <- read.csv("data/dk_slaves.csv", na = "NULL")
+slave1 <- read.csv("data/dk.trans.csv", na = "NULL")
 slave2<-slave1 %>% 
   mutate(People_Dead=Total.embarked..IMP.-Total.disembarked..IMP.)
 ```
